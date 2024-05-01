@@ -1,5 +1,6 @@
 import pandas as pd
-
+import random
+import numpy as np
 #Wechselkurs von Dollar zu Euro. Wechselkurs vom 22.04.2024
 exchange_rate = 0.94
 
@@ -47,6 +48,59 @@ df_cleaned = df_cleaned.drop(index=rows_to_drop)
 for i in range(len(df_cleaned)):
     if pd.isnull(df_cleaned.iloc[i, 1]):  # Überprüfen, ob der Wert in Spalte 2 fehlt
         df_cleaned.iloc[i, 1] = df_cleaned.iloc[i-1, 1] + 1  # Ersetzen des fehlenden Werts durch die nächsthöhere Zahl
+
+# Datumsersetzung für Spalte 3 und 4 (Stratified replacement)
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 2]):  # Überprüfen, ob das Datum in Spalte 3 fehlt
+        df_cleaned.iloc[i, 2] = df_cleaned.iloc[i-1, 2]  # Ersetzen des fehlenden Datums durch das Datum aus der vorherigen Zeile
+    if pd.isnull(df_cleaned.iloc[i, 3]):  # Überprüfen, ob der Tag in Spalte 4 fehlt
+        # Ersetzen des Tags aus dem Datum der vorherigen Zeile und Zuweisen in Spalte 4
+        df_cleaned.iloc[i, 3] = df_cleaned.iloc[i-1, 3]
+
+# Ergenzen des Monats in Spalte 5 (Stratified replacement)
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 4]): # Überprüfen, ob der Monat in Spalte 5 fehlt
+        df_cleaned.iloc[i, 4] = df_cleaned.iloc[i-1, 4] #Ersetzen des fehlenden Monats mit dem Monat aus der vorherigen Zeile
+
+# Ergenzen des Jahres in Spalte 6 (Stratified replacement)
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 5]): # Überprüfen, ob des Jahres in Spalte 6 fehlt
+        df_cleaned.iloc[i, 5] = df_cleaned.iloc[i-1, 5] #Ersetzen des fehlenden Jahres mit dem Jahr aus der vorherigen Zeile
+
+#Fill with mean für Spalte 7 - Alter der Kunden
+#Berechnen des Mittelwerts für Spalte 7
+mean_column_7 = df_cleaned.iloc[:, 6].mean()
+
+#Ersetzen fehlender Einträge in Spalte 7 durch den Mittelwert
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 6]):  # Überprüfen, ob der Eintrag in Spalte 7 fehlt
+        df_cleaned.iloc[i, 6] = mean_column_7  # Ersetzen des fehlenden Eintrags durch den Mittelwert
+
+
+
+# Füllen von Spalte 8 (Customer_Gender) mit random replacement
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 7]):  # Überprüfen, ob der Eintrag in Spalte 8 fehlt
+        # Zufällig 'M' oder 'F' auswählen
+        random_gender = random.choice(['M', 'F'])
+        df_cleaned.iloc[i, 7] = random_gender
+
+
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 8]): # Überprüfen, ob des Jahres in Spalte 9 fehlt
+        df_cleaned.iloc[i, 8] = df_cleaned.iloc[i+1, 8] #Ersetzen der fehlenden Country aus der oberen Zeile
+
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 9]): # Überprüfen, ob des Jahres in Spalte 10 fehlt
+        df_cleaned.iloc[i, 9] = df_cleaned.iloc[i+1, 9] #Ersetzen des fehlenden State aus der oberen Zeile
+
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 10]): # Überprüfen, ob des Jahres in Spalte 9 fehlt
+        df_cleaned.iloc[i, 10] = df_cleaned.iloc[i+1, 10] #Ersetzen der fehlenden Country aus der oberen Zeile
+
+for i in range(len(df_cleaned)):
+    if pd.isnull(df_cleaned.iloc[i, 11]): # Überprüfen, ob des Jahres in Spalte 10 fehlt
+        df_cleaned.iloc[i, 11] = df_cleaned.iloc[i+1, 11] #Ersetzen des fehlenden State aus der oberen Zeile
 
 
 # Überprüfen der bereinigten Daten
