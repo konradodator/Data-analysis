@@ -1,6 +1,9 @@
 import pandas as pd
 import random
 import numpy as np
+from Levenshtein import distance
+import matplotlib.pyplot as plt
+
 #Wechselkurs von Dollar zu Euro. Wechselkurs vom 22.04.2024
 exchange_rate = 0.94
 
@@ -87,25 +90,83 @@ for i in range(len(df_cleaned)):
 
 
 for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 8]): # Überprüfen, ob des Jahres in Spalte 9 fehlt
-        df_cleaned.iloc[i, 8] = df_cleaned.iloc[i+1, 8] #Ersetzen der fehlenden Country aus der oberen Zeile
+    if pd.isnull(df_cleaned.iloc[i, 8]): # Überprüfen, ob Country in Spalte 9 fehlt
+        df_cleaned.iloc[i, 8] = df_cleaned.iloc[i+1, 8] #Ersetzen der fehlenden Country
 
 for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 9]): # Überprüfen, ob des Jahres in Spalte 10 fehlt
-        df_cleaned.iloc[i, 9] = df_cleaned.iloc[i+1, 9] #Ersetzen des fehlenden State aus der oberen Zeile
+    if pd.isnull(df_cleaned.iloc[i, 9]): # Überprüfen, ob State Spalte 10 fehlt
+        df_cleaned.iloc[i, 9] = df_cleaned.iloc[i+1, 9] #Ersetzen des fehlenden State
 
 for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 10]): # Überprüfen, ob des Jahres in Spalte 9 fehlt
-        df_cleaned.iloc[i, 10] = df_cleaned.iloc[i+1, 10] #Ersetzen der fehlenden Country aus der oberen Zeile
+    if pd.isnull(df_cleaned.iloc[i, 10]): # Überprüfen, ob Product_Category fehlt
+        df_cleaned.iloc[i, 10] = df_cleaned.iloc[i+1, 10] #Ersetzen der fehlenden Product_Category
+
 
 for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 11]): # Überprüfen, ob des Jahres in Spalte 10 fehlt
-        df_cleaned.iloc[i, 11] = df_cleaned.iloc[i+1, 11] #Ersetzen des fehlenden State aus der oberen Zeile
+    if pd.isnull(df_cleaned.iloc[i, 11]): # Überprüfen, ob Sub_Category fehlt
+        df_cleaned.iloc[i, 11] = df_cleaned.iloc[i+1, 11] #Ersetzen des fehlenden Sub_Category
 
+
+
+
+# Erstellen von Boxplots für jedes Feature
+for column in df_cleaned.columns:
+    if df_cleaned[column].dtype in ['int64', 'float64']:  # Nur numerische Spalten berücksichtigen
+        plt.figure(figsize=(8, 6))
+        df_cleaned.boxplot(column=[column])
+        plt.title(f'Boxplot für {column}')
+        plt.ylabel('Wert')
+        plt.show()
 
 # Überprüfen der bereinigten Daten
 print("\nBereinigte Daten:")
 print(df_cleaned.head())
 
 # Schreiben des bereinigten DataFrames zurück in die Excel-Datei, um die ursprüngliche Datei zu überschreiben
-df_cleaned.to_excel("C:\\Users\Konrad\Desktop\HTW\M1-Computer_Vision\DataCleaning\\uncleaned2_bike_sales.xlsx", index=False)
+df_cleaned.to_excel("C:\\Users\Konrad\Desktop\HTW\M1-Computer_Vision\DataCleaning\\bike_sales_clean.xlsx", index=False)
+
+
+# Zählen der Anzahl von Männern und Frauen, die ein Fahrrad gekauft haben
+gender_counts = df_cleaned['Customer_Gender'].value_counts()
+
+# Erstellen des Balkendiagramms
+plt.figure(figsize=(8, 6))
+gender_counts.plot(kind='bar', color=['blue', 'pink'])
+plt.title('Anzahl der Fahrradkäufe nach Geschlecht')
+plt.xlabel('Geschlecht')
+plt.ylabel('Anzahl der Käufe')
+plt.xticks(rotation=0)  # Rotation der x-Achsenbeschriftungen auf 0 Grad
+plt.show()
+
+# Gruppieren nach Land und Berechnen des durchschnittlichen Gewinns pro Land
+profit_per_country = df_cleaned.groupby('Country')[' Profit_$ '].mean().sort_values()
+
+# Erstellen des Balkendiagramms
+plt.figure(figsize=(10, 6))
+profit_per_country.plot(kind='bar', color='skyblue')
+plt.title('Durchschnittlicher Gewinn pro Land')
+plt.xlabel('Land')
+plt.ylabel('Durchschnittlicher Gewinn')
+plt.xticks(rotation=45, ha='right')  # Rotation der x-Achsenbeschriftungen und Ausrichtung nach rechts
+plt.tight_layout()  # Optimierung der Layout-Anpassung
+plt.show()
+
+# Erstellen eines Streudiagramms für Männer und Frauen getrennt nach Alter und Umsatz
+plt.figure(figsize=(10, 6))
+
+# Streudiagramm für Männer
+plt.scatter(df_cleaned[df_cleaned['Customer_Gender'] == 'M']['Customer_Age'],
+            df_cleaned[df_cleaned['Customer_Gender'] == 'M']['Revenue_$'],
+            color='blue', label='Männer')
+
+# Streudiagramm für Frauen
+plt.scatter(df_cleaned[df_cleaned['Customer_Gender'] == 'F']['Customer_Age'],
+            df_cleaned[df_cleaned['Customer_Gender'] == 'F']['Revenue_$'],
+            color='pink', label='Frauen')
+
+plt.title('Ausgaben nach Alter und Geschlecht')
+plt.xlabel('Alter')
+plt.ylabel('Umsatz')
+plt.legend()
+plt.grid(True)
+plt.show()
