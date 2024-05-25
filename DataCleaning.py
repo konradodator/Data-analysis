@@ -1,14 +1,16 @@
 import pandas as pd
 import random
 import numpy as np
-from Levenshtein import distance
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 #Wechselkurs von Dollar zu Euro. Wechselkurs vom 22.04.2024
 exchange_rate = 0.94
 
 # DataFrame laden
-df = pd.read_csv("C:\\Users\Konrad\Desktop\HTW\M1-Computer_Vision\DataCleaning\\uncleaned2_bike_sales.csv")
+df = pd.read_csv('uncleaned2_bike_sales.csv')
 
 # Überprüfen der Kopfzeile nach Dollar-Zeichen
 dollar_columns = []
@@ -22,6 +24,8 @@ print(dollar_columns)
 # Umwandeln der Werte in den Spalten mit Dollar-Zeichen in Euro
 for column in dollar_columns:
     df[column] = df[column] * exchange_rate
+
+
 
 # Anzeigen der ersten paar Zeilen des umgewandelten DataFrames
 print("Erste paar Zeilen des umgewandelten DataFrames:")
@@ -122,9 +126,9 @@ for column in df_cleaned.columns:
 print("\nBereinigte Daten:")
 print(df_cleaned.head())
 
-# Schreiben des bereinigten DataFrames zurück in die Excel-Datei, um die ursprüngliche Datei zu überschreiben
-df_cleaned.to_excel("C:\\Users\Konrad\Desktop\HTW\M1-Computer_Vision\DataCleaning\\bike_sales_clean.xlsx", index=False)
 
+# Schreiben des bereinigten DataFrames zurück in die Excel-Datei, um die ursprüngliche Datei zu überschreiben
+df_cleaned.to_csv('bike_sales_clean.csv', index=False)
 
 # Zählen der Anzahl von Männern und Frauen, die ein Fahrrad gekauft haben
 gender_counts = df_cleaned['Customer_Gender'].value_counts()
@@ -170,3 +174,90 @@ plt.ylabel('Umsatz')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+
+# Anwenden der One-Hot-Codierung auf nicht-numerische Features
+df_encoded = pd.get_dummies(df_cleaned, columns=['Month', 'Customer_Gender', 'Country', 'State', 'Product_Category', 'Sub_Category', 'Date'])
+
+# Anzeigen der ersten paar Zeilen des neuen DataFrames
+print("Dataframe nach der Codierung:")
+print(df_encoded.head())
+# Speichern des codierten Datensatzes als CSV-Datei
+df_encoded.to_csv('bike_sales_codified.csv', index=False)
+
+
+# Berechnen der Korrelationsmatrix
+correlation_matrix = df_encoded.corr()
+
+# Finden redundanter Features (mit Korrelation > 0.9)
+redundant_features = set()
+for i in range(len(correlation_matrix.columns)):
+    for j in range(i):
+        if abs(correlation_matrix.iloc[i, j]) > 0.9:
+            redundant_features.add(correlation_matrix.columns[i])
+
+# Anzeigen der Korrelationsmatrix
+print("Korrelationsmatrix:")
+print(correlation_matrix)
+
+# Löschen der redundanten Features
+df_reduced = df_encoded.drop(columns=redundant_features)
+
+# Löschen der Spalten "Day", "Month" und "Year", da "Date" als information ausreicht
+df_cleaned_without_date = df_cleaned.drop(columns=['Day', 'Month', 'Year'])
+
+
+
+# Umwandeln aller nicht-numerischen Features in numerische Features
+df_cleaned_encoded = pd.get_dummies(df_cleaned)
+# Entfernen von Zeilen mit fehlenden Werten
+df_cleaned_encoded_no_missing = df_cleaned_encoded.dropna()
+# Überprüfen und Entfernen von NaN-Werten
+print("Anzahl der NaN-Werte vor der Entfernung:", df_cleaned_encoded.isna().sum().sum())
+df_cleaned_encoded_no_missing = df_cleaned_encoded.dropna()
+print("Anzahl der NaN-Werte nach der Entfernung:", df_cleaned_encoded_no_missing.isna().sum().sum())
+
+# Standardisieren der Daten
+scaler = StandardScaler()
+df_standardized_no_missing = scaler.fit_transform(df_cleaned_encoded_no_missing)
+
+# Durchführung der PCA
+pca = PCA()
+pca.fit(df_standardized_no_missing)
+
+# Berechnen der kumulativen erklärten Varianz
+explained_variance_ratio_cumulative = np.cumsum(pca.explained_variance_ratio_)
+
+# Bestimmen der Anzahl der Hauptkomponenten, die 95% der Varianz erklären
+n_components_95_variance = np.argmax(explained_variance_ratio_cumulative >= 0.95) + 1
+
+# Anzeigen der Anzahl der Principal Components, die 95% der Varianz der Daten abdecken
+print("Anzahl der Principal Components, die 95% der Varianz der Daten abdecken:", n_components_95_variance)
+# Eigenwerte (Varianzen)
+print("Eigenwerte (Varianzen):")
+print(pca.explained_variance_)
+
+# Eigenvektoren (Hauptkomponenten)
+print("\nEigenvektoren (Hauptkomponenten):")
+print(pca.components_)
+
+# Speichern des reduzierten Datensatzes als CSV-Datei
+df_reduced.to_csv('bike_sales_reduced.csv', index=False)
+
+
+# Normalisieren aller Features
+scaler = MinMaxScaler()
+df_normalized = scaler.fit_transform(df_cleaned_encoded_no_missing)
+
+# Erstellen eines DataFrames aus den normalisierten Daten
+df_normalized = pd.DataFrame(df_normalized, columns=df_cleaned_encoded_no_missing.columns)
+
+# Durchlaufen aller Spalten im DataFrame
+for column in df_normalized.columns:
+    # Überprüfen, ob die Spalte einen $ Zeichen enthält
+    if '$' in df_normalized[column].astype(str):
+        # Ersetzen des $ Zeichens durch das Eurozeichen
+        df_normalized[column] = df_normalized[column].astype(str).str.replace('$', '€')
+
+# Speichern des normalisierten Datensatzes als CSV-Datei
+df_normalized.to_excel('bike_sales_normalized.xlsx', index=False)
