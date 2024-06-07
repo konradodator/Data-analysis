@@ -4,3 +4,4 @@ Verwendete Bibliotheken:
 -Matplotlib
 -scikit-learn
 -tensorflow
+-opencv-python
