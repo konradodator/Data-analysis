@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+name = "CVSS24_Gruppe_20"
+version = "1.2"
+
+
+
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "scikit-learn",
+    "tensorflow",
+    "autocorrect",
+    "opencv-python"
+]
+
+[tool.hatch.build.targets.sdist]
+include = ["src","README.md"]
+
+[tool.hatch.build.targets.wheel]
+include = ["src","README.md"]
