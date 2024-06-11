@@ -11,3 +11,5 @@ Verwendete Bibliotheken:
 -tensorflow
 
 -opencv-python
+
+-autocorrect
