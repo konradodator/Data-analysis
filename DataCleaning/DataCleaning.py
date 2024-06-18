@@ -7,8 +7,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
-#Wechselkurs von Dollar zu Euro. Wechselkurs vom 08.06.2024
-exchange_rate = 0.92
+#Wechselkurs von Dollar zu Euro. Wechselkurs vom 03.12.2021
+exchange_rate = 0.88
 
 # DataFrame laden
 df = pd.read_csv('uncleaned2_bike_sales.csv')
@@ -61,7 +61,7 @@ for i in range(len(df_cleaned)):
     if pd.isnull(df_cleaned.iloc[i, 1]):  # Überprüfen, ob der Wert in Spalte 2 fehlt
         df_cleaned.iloc[i, 1] = df_cleaned.iloc[i-1, 1] + 1  # Ersetzen des fehlenden Werts durch die nächsthöhere Zahl
 
-# Datumsersetzung für Spalte 3 und 4 (Stratified replacement)
+# Datumsersetzung für Spalte 3 und 4
 for i in range(len(df_cleaned)):
     if pd.isnull(df_cleaned.iloc[i, 2]):  # Überprüfen, ob das Datum in Spalte 3 fehlt
         df_cleaned.iloc[i, 2] = df_cleaned.iloc[i-1, 2]  # Ersetzen des fehlenden Datums durch das Datum aus der vorherigen Zeile
@@ -69,18 +69,17 @@ for i in range(len(df_cleaned)):
         # Ersetzen des Tags aus dem Datum der vorherigen Zeile und Zuweisen in Spalte 4
         df_cleaned.iloc[i, 3] = df_cleaned.iloc[i-1, 3]
 
-# Ergenzen des Monats in Spalte 5 (Stratified replacement)
+# Ergenzen des Monats in Spalte 5
 for i in range(len(df_cleaned)):
     if pd.isnull(df_cleaned.iloc[i, 4]): # Überprüfen, ob der Monat in Spalte 5 fehlt
         df_cleaned.iloc[i, 4] = df_cleaned.iloc[i-1, 4] #Ersetzen des fehlenden Monats mit dem Monat aus der vorherigen Zeile
 
-# Ergenzen des Jahres in Spalte 6 (Stratified replacement)
+# Ergenzen des Jahres in Spalte 6
 for i in range(len(df_cleaned)):
     if pd.isnull(df_cleaned.iloc[i, 5]): # Überprüfen, ob des Jahres in Spalte 6 fehlt
         df_cleaned.iloc[i, 5] = df_cleaned.iloc[i-1, 5] #Ersetzen des fehlenden Jahres mit dem Jahr aus der vorherigen Zeile
 
 #Fill with mean für Spalte 7 - Alter der Kunden
-#Berechnen des Mittelwerts für Spalte 7
 mean_column_7 = df_cleaned.iloc[:, 6].mean()
 
 #Ersetzen fehlender Einträge in Spalte 7 durch den Mittelwert
@@ -98,34 +97,46 @@ for i in range(len(df_cleaned)):
         df_cleaned.iloc[i, 7] = random_gender
 
 
-for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 8]): # Überprüfen, ob Country in Spalte 9 fehlt
-        df_cleaned.iloc[i, 8] = df_cleaned.iloc[i+1, 8] #Ersetzen der fehlenden Country
+# Mapping von State zu Country erstellen
+state_to_country = df_cleaned.dropna().set_index('State')['Country'].to_dict()
 
-for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 9]): # Überprüfen, ob State Spalte 10 fehlt
-        df_cleaned.iloc[i, 9] = df_cleaned.iloc[i+1, 9] #Ersetzen des fehlenden State
-
-for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 10]): # Überprüfen, ob Product_Category fehlt
-        df_cleaned.iloc[i, 10] = df_cleaned.iloc[i+1, 10] #Ersetzen der fehlenden Product_Category
+# Fehlende Einträge ergänzen
+df_cleaned['Country'] = df.apply(lambda row: state_to_country.get(row['State'], row['Country']), axis=1)
 
 
-for i in range(len(df_cleaned)):
-    if pd.isnull(df_cleaned.iloc[i, 11]): # Überprüfen, ob Sub_Category fehlt
-        df_cleaned.iloc[i, 11] = df_cleaned.iloc[i+1, 11] #Ersetzen des fehlenden Sub_Category
+
+# Produktkategorie ergänzen
+column_name = 'Product_Category'
+# Modus für Produktkategorie berechnen
+mode_product_category = df_cleaned[column_name].mode()[0]
+# Fehlende Werte in Produktkategorie ersetzen
+
+df_cleaned.loc[:, column_name] = df_cleaned[column_name].fillna(mode_product_category)
+
+
+# Unterkategorie ergänzen
+column_name = 'Sub_Category'
+# Modus für Unterkategorie berechnen
+mode_sub_category = df_cleaned[column_name].mode()[0]
+
+# Fehlende Werte in Unterkategorie ersetzen
+df_cleaned.loc[:, column_name] = df_cleaned[column_name].fillna(mode_sub_category)
+
 
 
 # Auffüllen der übrigen fehlenden Werte mit Vorwärts-/Rückwärtsfüllen
 df_cleaned.ffill(inplace=True)
 df_cleaned.bfill(inplace=True)
 
+
+
 #Typos beheben
 spell = Speller(lang="en")
 # Konvertieren der "Month"-Spalte in Zeichenfolgen und Anwendung des Spellers
 df_cleaned["Month"] = df_cleaned["Month"].apply(lambda x: spell(x))
 
-
+# Entfernen von Leerzeichen am Anfang und Ende jeder Zeichenkette und mehrfache Leerzeichen innerhalb der Zeichenkette in der Spalte "Country"
+df_cleaned["Country"] = df["Country"].str.strip().str.split().str.join(' ')
 
 
 # Erstellen von Boxplots für jedes Feature
@@ -215,9 +226,6 @@ plt.show()
 
 # Spalten 3, 4 und 5 löschen (Indizes 2, 3 und 4)
 df_cleaned.drop(df_cleaned.columns[[0, 3, 4, 5]], axis=1, inplace=True)
-
-# Entfernen von Leerzeichen am Anfang und Ende jeder Zeichenkette und mehrfache Leerzeichen innerhalb der Zeichenkette in der Spalte "Country"
-df_cleaned["Country"] = df["Country"].str.strip().str.split().str.join(' ')
 
 
 # Nicht-numerische Features in numerische Features
