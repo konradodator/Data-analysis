@@ -8,8 +8,10 @@ modell = load_model(bestes_modell_dateiname)
 
 # Funktion zum Klassifizieren eines Bildes und Anzeigen des Ergebnisses
 def klassifiziere_bild(bild):
+    # Bild nach RGB konvertieren
+    bild_rgb = cv2.cvtColor(bild, cv2.COLOR_BGR2RGB)
     # Bild vorverarbeiten (Größe ändern, normalisieren usw.)
-    bild_vorverarbeitet = cv2.resize(bild, (150, 150)) / 255.0
+    bild_vorverarbeitet = cv2.resize(bild_rgb, (150, 150)) / 255.0
     bild_vorverarbeitet = np.expand_dims(bild_vorverarbeitet, axis=0)
 
     # Vorhersage des Modells für das Bild
