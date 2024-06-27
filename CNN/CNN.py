@@ -73,7 +73,7 @@ modell = models.Sequential([
 ])
 
 # Modell kompilieren
-modell.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
+modell.compile(optimizer='adam',loss='mean_squared_error',metrics=['accuracy'])
 
 # Hyperparameter definieren
 batch_groesse = 32
@@ -82,6 +82,9 @@ epochen = 30
 # Listen zum Speichern von Loss und Accuracy
 loss_verlauf = []
 accuracy_verlauf = []
+beste_val_loss = np.inf
+beste_val_accuracy = 0.0
+bestes_modell_dateiname = "bestes_modell.h5"
 
 # Trainingsloop
 for epoche in range(epochen):
@@ -106,6 +109,19 @@ for epoche in range(epochen):
     loss_verlauf.append(verlust)
     accuracy_verlauf.append(genauigkeit)
 
+    # Modell speichern, wenn die Loss verbessert wurde und die Genauigkeit höher ist
+    if verlust < beste_val_loss and genauigkeit > beste_val_accuracy:
+        beste_val_loss = verlust
+        beste_val_accuracy = genauigkeit
+        bestes_modell_dateiname = f"bestes_modell_loss_{verlust:.4f}_acc_{genauigkeit:.4f}.h5"
+        modell.save(bestes_modell_dateiname)
+        print(f"Das Modell wurde gespeichert: {bestes_modell_dateiname}")
+
+    # Break, wenn Verbesserung an die angegebenen Grenzen kommt
+    if epoche > 0 and verlust < 0.3 and genauigkeit > 0.98:
+        print(f"Keine Verbesserung mehr in Epoche {epoche + 1}. Beende Training.")
+        break
+
 # Plotten der Loss-Entwicklung
 plt.figure(figsize=(10, 5))
 plt.plot(loss_verlauf, label='Loss', color='red')
@@ -128,8 +144,6 @@ plt.grid(True)
 plt.savefig("accuracy_verlauf.png")  # Accuracy-Verlauf als Bild speichern
 plt.show()
 
-# Modell mit bester Genauigkeit speichern
-bestes_modell_dateiname = "bestes_modell.h5"
-beste_genauigkeit_index = np.argmax(accuracy_verlauf)
-modell.save(bestes_modell_dateiname)
+
+
 print(f"Das Modell mit der besten Genauigkeit wurde als '{bestes_modell_dateiname}' gespeichert.")
