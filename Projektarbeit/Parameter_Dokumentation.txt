@@ -1,0 +1,25 @@
+Projektarbeit-Computer-Vision
+
+Hyperparameter des Trainings
+ -Anzahl der Epochen: 30
+ -Batch Size: 32
+ -Learning Rate: Adam Optimizer (Standard-Learning Rate: 0.001)
+ -Input Resolution: Bildgröße: 150 x 150 Pixel
+
+Data Augmentation-Algorithmen
+ -Rotation Range: 30 Grad
+ -Width Shift Range: 0.2
+ -Height Shift Range: 0.2
+ -Shear Range: 0.2
+ -Zoom Range: 0.2
+ -Horizontal Flip: True
+ -Fill Mode: nearest
+
+Trainingsstrategien 
+ -VGG16
+ -Xception
+ -Vortrainierte VGG16
+ -Transfer Learning
+ -Frozen Layer
+ -Early Stopping
+ -Model Checkpoint
