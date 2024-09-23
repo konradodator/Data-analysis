@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "Projektarbeit-Computer-Vision"
+version = "1.0"
+authors = ["Konrad Matusewicz"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.23.0"
+opencv-python = "^4.6.0"
+scikit-learn = "^1.1.0"
+tensorflow = "^2.9.0"
+matplotlib = "^3.5.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[scripts]
+start-live-video-test = "src.main:live_video_test"
